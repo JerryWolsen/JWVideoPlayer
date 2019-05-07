@@ -102,6 +102,11 @@ class JWVideoListViewController: UIViewController, UICollectionViewDataSource, U
         return cell
     }
     
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let vc: JWVideoPlayerController = JWVideoPlayerController()
+        vc.setupParameters(result: asset, index: indexPath.item)
+        navigationController?.pushViewController(vc, animated: true)
+    }
 }
 
 
