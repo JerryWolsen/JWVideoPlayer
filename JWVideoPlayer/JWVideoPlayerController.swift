@@ -26,6 +26,7 @@ class JWVideoPlayerController: UIViewController {
         super.viewDidLoad()
         setupView()
         setupNavigation()
+        playVideo()
     }
     
     private func setupNavigation() {
@@ -54,7 +55,7 @@ class JWVideoPlayerController: UIViewController {
         playerView.snp.makeConstraints { (make) in
             make.edges.equalToSuperview()
         }
-        playVideo()
+        
     }
     
     private func playVideo() {

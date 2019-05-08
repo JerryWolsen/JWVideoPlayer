@@ -11,9 +11,12 @@ import AVKit
 
 class JWVideoPlayerView: UIView {
     
-    var playerLayer: AVPlayerLayer!
+    
     var isPlaying: Bool = false
     var doubleTap: UITapGestureRecognizer!
+    
+    private var playerLayer: AVPlayerLayer!
+    private var playButton: UIButton!
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -29,14 +32,6 @@ class JWVideoPlayerView: UIView {
     
     deinit {
         self.removeGestureRecognizer(doubleTap)
-    }
-    
-    @objc func handleDoubleTap() {
-        if isPlaying == true {
-            pause()
-        } else {
-            play()
-        }
     }
     
     func setupPlayerLayer(playerItem: AVPlayerItem) {
@@ -63,6 +58,46 @@ class JWVideoPlayerView: UIView {
             return
         }
         playerLayer.frame = self.layer.bounds
+    }
+    
+    @objc private func handleDoubleTap() {
+        if isPlaying == true {
+            showPlayButton()
+            pause()
+        } else {
+            hidePlayButton()
+            play()
+        }
+    }
+    
+    private func showPlayButton() {
+        
+        guard playButton == nil else {
+            playButton.isHidden = false
+            return
+        }
+        
+        playButton = UIButton(type: .custom)
+        self.addSubview(playButton)
+        playButton.setBackgroundImage(UIImage(named: "play_button"), for: .normal)
+        playButton.addTarget(self, action: #selector(onPlayBtnClicked), for: .touchUpInside)
+        playButton.snp.makeConstraints { (make) in
+            make.center.equalTo(self)
+            make.width.equalTo(80)
+            make.height.equalTo(80)
+        }
+        
+    }
+    
+    private func hidePlayButton() {
+        
+        playButton.isHidden = true
+        
+    }
+    
+    @objc private func onPlayBtnClicked() {
+        hidePlayButton()
+        play()
     }
     
 }
