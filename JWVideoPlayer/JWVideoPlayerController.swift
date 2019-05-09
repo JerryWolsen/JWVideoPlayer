@@ -32,7 +32,6 @@ class JWVideoPlayerController: UIViewController {
         setupView()
         setupNavigation()
         playVideo()
-      
     }
     
     override func viewWillLayoutSubviews() {

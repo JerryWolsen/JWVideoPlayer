@@ -8,6 +8,7 @@
 
 import UIKit
 import AVKit
+import MediaPlayer
 
 protocol JWVideoPlayerDelegate: class {
     func player(playerView:JWVideoPlayerView, sliderTouchUpOut slider:UISlider)
@@ -18,6 +19,15 @@ class JWVideoPlayerView: UIView {
     
     var isPlaying: Bool = false
     var doubleTap: UITapGestureRecognizer!
+    var pan: UIPanGestureRecognizer!
+    var light: CGFloat! {
+        didSet {
+            NSLog("%.2f", light)
+            UIScreen.main.brightness = light ?? 0.5
+        }
+    }
+    var voiceView: MPVolumeView!
+    var volumeSlider: UISlider!
     weak var delegate: JWVideoPlayerDelegate?
     
     private var playerLayer: AVPlayerLayer!
@@ -30,6 +40,20 @@ class JWVideoPlayerView: UIView {
         doubleTap.numberOfTapsRequired = 2
         self.addGestureRecognizer(doubleTap)
         self.backgroundColor = UIColor(red: 233/255, green: 1, blue: 1, alpha: 0.5)
+        
+        light = UIScreen.main.brightness
+        
+        voiceView = MPVolumeView(frame: self.bounds)
+        for subview in voiceView.subviews {
+            if let slider = subview as? UISlider {
+                volumeSlider = slider
+                break
+            }
+        }
+        voiceView.isHidden = true
+        self.addSubview(voiceView)
+        pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(pan:)))
+        self.addGestureRecognizer(pan)
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -38,6 +62,7 @@ class JWVideoPlayerView: UIView {
     
     deinit {
         self.removeGestureRecognizer(doubleTap)
+        self.removeGestureRecognizer(pan)
     }
     
     func setupPlayerLayer(playerItem: AVPlayerItem) {
@@ -72,11 +97,11 @@ class JWVideoPlayerView: UIView {
     }
     
     func totalTime() -> Float64{
-       let duration = playerItem?.duration ?? CMTime(value: 0, timescale: 1)
-       guard duration.value != 0 else {
+        let duration = playerItem?.duration ?? CMTime(value: 0, timescale: 1)
+        guard duration.value != 0 else {
             return 0
-       }
-       return  TimeInterval(duration.value) / TimeInterval(duration.timescale)
+        }
+        return  TimeInterval(duration.value) / TimeInterval(duration.timescale)
     }
     
     override func layoutSubviews() {
@@ -94,6 +119,54 @@ class JWVideoPlayerView: UIView {
         } else {
             hidePlayButton()
             play()
+        }
+    }
+    
+    @objc private func handlePan(pan: UIPanGestureRecognizer) {
+        let movePoint = pan.translation(in: pan.view)
+        let absX = abs(movePoint.x)
+        let absY = abs(movePoint.y)
+        
+        let locationPoint = pan.location(in: pan.view)
+        
+        if absX > absY {
+            if movePoint.x < 0 {
+                NSLog("向左滑动")
+            } else {
+                NSLog("向右滑动")
+            }
+            
+        } else {
+            
+            if locationPoint.x < (self.frame.width / 2) {
+                if movePoint.y < 0 {
+                    if light.isLess(than: 1) {
+                        light = light + 0.02
+                    } else {
+                        light = 1
+                    }
+                } else {
+                    light = light - 0.02
+                    if light.isLess(than: 0){
+                        light = 0
+                    }
+                }
+            } else {
+                let volume = self.volumeSlider.value
+                NSLog("%2f", volume)
+                if movePoint.y < 0 {
+                    if volume.isLess(than: 1) {
+                        self.volumeSlider.value = volume + 0.01
+                    } else {
+                        self.volumeSlider.value = 1
+                    }
+                } else {
+                    self.volumeSlider.value = volume - 0.01
+                    if self.volumeSlider.value.isLess(than: 0){
+                        self.volumeSlider.value = 0
+                    }
+                }
+            }
         }
     }
     
