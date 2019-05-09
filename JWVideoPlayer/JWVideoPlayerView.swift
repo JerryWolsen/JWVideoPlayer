@@ -16,7 +16,6 @@ protocol JWVideoPlayerDelegate: class {
 
 class JWVideoPlayerView: UIView {
     
-    
     var isPlaying: Bool = false
     var doubleTap: UITapGestureRecognizer!
     var pan: UIPanGestureRecognizer!
@@ -36,6 +35,13 @@ class JWVideoPlayerView: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        
+        do {
+             try AVAudioSession.sharedInstance().setCategory(.playback)
+        } catch {
+            print("Setting category to AVAudioSessionCategoryPlayback failed.")
+        }
+       
         doubleTap = UITapGestureRecognizer.init(target: self, action: #selector(handleDoubleTap))
         doubleTap.numberOfTapsRequired = 2
         self.addGestureRecognizer(doubleTap)
@@ -68,6 +74,7 @@ class JWVideoPlayerView: UIView {
     func setupPlayerLayer(playerItem: AVPlayerItem) {
         self.playerItem = playerItem
         let player = AVPlayer(playerItem: playerItem)
+        player.volume = 1
         playerLayer = AVPlayerLayer(player: player)
         playerLayer.videoGravity = .resizeAspect
         playerLayer.frame = self.layer.bounds
