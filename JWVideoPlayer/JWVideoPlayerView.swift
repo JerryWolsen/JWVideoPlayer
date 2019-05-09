@@ -9,13 +9,19 @@
 import UIKit
 import AVKit
 
+protocol JWVideoPlayerDelegate: class {
+    func player(playerView:JWVideoPlayerView, sliderTouchUpOut slider:UISlider)
+}
+
 class JWVideoPlayerView: UIView {
     
     
     var isPlaying: Bool = false
     var doubleTap: UITapGestureRecognizer!
+    weak var delegate: JWVideoPlayerDelegate?
     
     private var playerLayer: AVPlayerLayer!
+    private var playerItem: AVPlayerItem?
     private var playButton: UIButton!
     
     override init(frame: CGRect) {
@@ -35,6 +41,7 @@ class JWVideoPlayerView: UIView {
     }
     
     func setupPlayerLayer(playerItem: AVPlayerItem) {
+        self.playerItem = playerItem
         let player = AVPlayer(playerItem: playerItem)
         playerLayer = AVPlayerLayer(player: player)
         playerLayer.videoGravity = .resizeAspect
@@ -50,6 +57,26 @@ class JWVideoPlayerView: UIView {
     func pause() {
         playerLayer.player!.pause()
         isPlaying = false
+    }
+    
+    func status() -> AVPlayer.Status {
+        return playerLayer.player!.status
+    }
+    
+    func seekToTime(time: CMTime, completeHandler: @escaping (Bool) -> Void ) {
+        playerLayer.player!.seek(to: time, completionHandler: completeHandler)
+    }
+    
+    func currentTime() -> Float64 {
+        return CMTimeGetSeconds(playerLayer.player?.currentTime() ?? CMTime(value: 0, timescale: 1))
+    }
+    
+    func totalTime() -> Float64{
+       let duration = playerItem?.duration ?? CMTime(value: 0, timescale: 1)
+       guard duration.value != 0 else {
+            return 0
+       }
+       return  TimeInterval(duration.value) / TimeInterval(duration.timescale)
     }
     
     override func layoutSubviews() {
