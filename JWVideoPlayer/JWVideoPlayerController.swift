@@ -49,10 +49,10 @@ class JWVideoPlayerController: UIViewController {
         let currentTime = playerView.currentTime()
         let totalTime = playerView.totalTime()
         if currentTimeLabel != nil {
-            currentTimeLabel.text = formatPlayTime(seconds: currentTime)
+            currentTimeLabel.text = JWTools.formatPlayTime(seconds: currentTime)
         }
         if (totalTimeLabel != nil) && (totalTimeLabel.text == "00:00") {
-            totalTimeLabel.text = formatPlayTime(seconds: totalTime)
+            totalTimeLabel.text = JWTools.formatPlayTime(seconds: totalTime)
         }
         if (slider != nil) && (!isSliding) {
             slider.value = Float(currentTime / totalTime)
@@ -159,20 +159,6 @@ class JWVideoPlayerController: UIViewController {
     func setupParameters(result: PHFetchResult<PHAsset>, index: Int) {
         asset = result
         currentIndex = index
-    }
-    
-    func formatPlayTime(seconds: TimeInterval) -> String {
-        if seconds.isNaN {
-            return "00:00"
-        }
-        let Min = Int(seconds / 60)
-        let Sec = Int(seconds.truncatingRemainder(dividingBy: 60))
-        if Min < 60 {
-            return String(format: "%02d:%02d", Min, Sec)
-        }
-        let Hour = Int(Min / 60)
-        let MinLeft = Int(Min % 60)
-        return String(format: "%02d:%02d:%02d", Hour, MinLeft, Sec)
     }
     
     @objc func onSliderTouchDown() {

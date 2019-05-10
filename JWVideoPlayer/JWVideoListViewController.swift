@@ -99,6 +99,7 @@ class JWVideoListViewController: UIViewController, UICollectionViewDataSource, U
                 cell.thumbnailImage = image
             }
         })
+        cell.duration = JWTools.formatPlayTime(seconds: assetItem.duration)
         return cell
     }
     
