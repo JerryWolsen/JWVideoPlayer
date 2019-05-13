@@ -71,7 +71,13 @@ class JWVideoGridCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         
-        let gradientLayer = JWTools.addGradientLayer(topColor: UIColor.clear.cgColor, bottomColor: UIColor.black.cgColor, frame: bottomBgView.bounds)
+        for sublayer in bottomBgView.layer.sublayers ?? []{
+            if sublayer is CAGradientLayer {
+               return
+            }
+        }
+        
+        let gradientLayer = JWTools.addGradientLayer(topColor: UIColor.clear.cgColor, bottomColor: UIColor(red: 0, green: 0, blue: 0, alpha: 0.7).cgColor, frame: bottomBgView.bounds)
         bottomBgView.layer.insertSublayer(gradientLayer, at: 0)
     
     }
