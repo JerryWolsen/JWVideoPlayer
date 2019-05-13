@@ -126,7 +126,6 @@ class JWVideoPlayerController: UIViewController {
     
     private func setupView() {
         view.backgroundColor = .white
-       
         playerView = JWVideoPlayerView()
         view.addSubview(playerView)
         playerView.snp.makeConstraints { (make) in
@@ -134,6 +133,9 @@ class JWVideoPlayerController: UIViewController {
         }
         playerView.delegate = self
         
+        let filename = currentAsset.value(forKey: "filename")
+    
+        title = filename as? String
     }
     
     private func playVideo() {
