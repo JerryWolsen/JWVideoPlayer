@@ -33,6 +33,18 @@ class JWVideoPlayerView: UIView {
     private var playerItem: AVPlayerItem?
     private var playButton: UIButton!
     
+    private lazy var progressView: JWProgressView = {
+        let pv = JWProgressView()
+        self.addSubview(pv)
+        pv.snp.makeConstraints({ (make) in
+            make.centerX.equalTo(self)
+            make.top.equalTo(self).inset(80)
+            make.width.equalTo(200)
+            make.height.equalTo(120)
+        })
+        return pv
+    }()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         
@@ -139,8 +151,10 @@ class JWVideoPlayerView: UIView {
         if absX > absY {
             if movePoint.x < 0 {
                 NSLog("向左滑动")
+                progressView.showFastBack()
             } else {
                 NSLog("向右滑动")
+                progressView.showFastForward()
             }
             
         } else {

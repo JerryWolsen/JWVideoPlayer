@@ -14,6 +14,7 @@
 		A834B0F8227E72F100715661 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A834B0F6227E72F100715661 /* LaunchScreen.storyboard */; };
 		A834B103227E72F100715661 /* JWVideoPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A834B102227E72F100715661 /* JWVideoPlayerTests.swift */; };
 		A834B10E227E72F100715661 /* JWVideoPlayerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A834B10D227E72F100715661 /* JWVideoPlayerUITests.swift */; };
+		A882FECB228A603F009261FF /* JWProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A882FECA228A603F009261FF /* JWProgressView.swift */; };
 		A8E1422B227EC7B5005CC692 /* JWVideoGridCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8E1422A227EC7B5005CC692 /* JWVideoGridCell.swift */; };
 		A8E1422D228006AE005CC692 /* JWBaseNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8E1422C228006AE005CC692 /* JWBaseNavigationController.swift */; };
 		A8E1422F2281647A005CC692 /* JWVideoPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8E1422E2281647A005CC692 /* JWVideoPlayerView.swift */; };
@@ -52,6 +53,7 @@
 		A834B109227E72F100715661 /* JWVideoPlayerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JWVideoPlayerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A834B10D227E72F100715661 /* JWVideoPlayerUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWVideoPlayerUITests.swift; sourceTree = "<group>"; };
 		A834B10F227E72F100715661 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A882FECA228A603F009261FF /* JWProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWProgressView.swift; sourceTree = "<group>"; };
 		A8E1422A227EC7B5005CC692 /* JWVideoGridCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWVideoGridCell.swift; sourceTree = "<group>"; };
 		A8E1422C228006AE005CC692 /* JWBaseNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWBaseNavigationController.swift; sourceTree = "<group>"; };
 		A8E1422E2281647A005CC692 /* JWVideoPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWVideoPlayerView.swift; sourceTree = "<group>"; };
@@ -124,12 +126,13 @@
 				A834B0EF227E72F000715661 /* JWVideoListViewController.swift */,
 				A8E1422A227EC7B5005CC692 /* JWVideoGridCell.swift */,
 				A8E1422C228006AE005CC692 /* JWBaseNavigationController.swift */,
+				A882FECA228A603F009261FF /* JWProgressView.swift */,
 				A8E1422E2281647A005CC692 /* JWVideoPlayerView.swift */,
 				A8E1423022816C7D005CC692 /* JWVideoPlayerController.swift */,
+				A8E142322285747B005CC692 /* JWTools.swift */,
 				A834B0F4227E72F100715661 /* Assets.xcassets */,
 				A834B0F6227E72F100715661 /* LaunchScreen.storyboard */,
 				A834B0F9227E72F100715661 /* Info.plist */,
-				A8E142322285747B005CC692 /* JWTools.swift */,
 			);
 			path = JWVideoPlayer;
 			sourceTree = "<group>";
@@ -340,6 +343,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A882FECB228A603F009261FF /* JWProgressView.swift in Sources */,
 				A8E1422B227EC7B5005CC692 /* JWVideoGridCell.swift in Sources */,
 				A8E1423122816C7D005CC692 /* JWVideoPlayerController.swift in Sources */,
 				A834B0F0227E72F000715661 /* JWVideoListViewController.swift in Sources */,
