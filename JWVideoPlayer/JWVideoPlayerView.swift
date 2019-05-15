@@ -29,6 +29,7 @@ class JWVideoPlayerView: UIView {
     var volumeSlider: UISlider!
     weak var delegate: JWVideoPlayerDelegate?
     
+    var width = UIScreen.main.bounds.width
     private var playerLayer: AVPlayerLayer!
     private var playerItem: AVPlayerItem?
     private var playButton: UIButton!
@@ -38,9 +39,9 @@ class JWVideoPlayerView: UIView {
         self.addSubview(pv)
         pv.snp.makeConstraints({ (make) in
             make.centerX.equalTo(self)
-            make.top.equalTo(self).inset(80)
+            make.top.equalTo(self).inset(120)
             make.width.equalTo(200)
-            make.height.equalTo(120)
+            make.height.equalTo(100)
         })
         return pv
     }()
@@ -129,6 +130,7 @@ class JWVideoPlayerView: UIView {
             return
         }
         playerLayer.frame = self.layer.bounds
+        width = self.bounds.width
     }
     
     @objc private func handleDoubleTap() {
@@ -148,13 +150,50 @@ class JWVideoPlayerView: UIView {
         
         let locationPoint = pan.location(in: pan.view)
         
+        if pan.state == .began {
+            if absX > absY {
+                progressView.show()
+                progressView.totalTime = JWTools.formatPlayTime(seconds: totalTime())
+                progressView.currentTime = JWTools.formatPlayTime(seconds: currentTime())
+            }
+        }
+        
         if absX > absY {
+            let tTime = totalTime()
+            let cTime = currentTime()
+            var moveTime = Double(absX / width) * totalTime() * 0.8
+            var destinationTime = 0.0
             if movePoint.x < 0 {
-                NSLog("向左滑动")
                 progressView.showFastBack()
+              
+                if cTime - moveTime < 0 {
+                    moveTime = cTime
+                }
+                destinationTime = cTime - moveTime
+                //NSLog("向左滑动 %.2fs", moveTime)
+                progressView.currentTime = JWTools.formatPlayTime(seconds: destinationTime)
             } else {
-                NSLog("向右滑动")
                 progressView.showFastForward()
+                if(cTime + moveTime > tTime) {
+                    moveTime = tTime - cTime
+                }
+                destinationTime = cTime + moveTime
+                //NSLog("向右滑动 %.2fs", moveTime)
+                progressView.currentTime = JWTools.formatPlayTime(seconds: destinationTime)
+            }
+            
+            if pan.state == .ended {
+                progressView.hide()
+                self.seekToTime(time: CMTime(seconds: destinationTime, preferredTimescale: 1), completeHandler: { (status) in
+                        if status {
+//                            if !self.isPlaying {
+//                                self.hidePlayButton()
+//                                self.play()
+//                            }
+                        } else {
+                            NSLog("seek error")
+                        }
+                })
             }
             
         } else {

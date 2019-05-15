@@ -28,7 +28,7 @@ class JWProgressView: UIView {
       self.addSubview(lb)
       lb.snp.makeConstraints({ (make) in
          make.centerX.equalToSuperview().offset(-40)
-         make.top.equalTo(self.fastView.snp.bottom)
+         make.top.equalTo(self.fastView.snp.bottom).offset(10)
       })
       lb.textColor = .green
       lb.textAlignment = .right
@@ -40,7 +40,7 @@ class JWProgressView: UIView {
         self.addSubview(lb)
         lb.snp.makeConstraints({ (make) in
             make.centerX.equalToSuperview()
-            make.top.equalTo(self.fastView.snp.bottom)
+            make.top.equalTo(self.fastView.snp.bottom).offset(10)
         })
         lb.textColor = .white
         lb.textAlignment = .center
@@ -52,12 +52,32 @@ class JWProgressView: UIView {
         self.addSubview(lb)
         lb.snp.makeConstraints({ (make) in
             make.centerX.equalToSuperview().offset(40)
-            make.top.equalTo(self.fastView.snp.bottom)
+            make.top.equalTo(self.fastView.snp.bottom).offset(10)
         })
         lb.textColor = .white
         lb.textAlignment = .left
         return lb
     }()
+    
+    private lazy var forwardImg: UIImage = {
+        return UIImage(named: "player_fast_forward") ?? nil!
+    }()
+    
+    private lazy var backImg: UIImage = {
+        return UIImage(named: "player_fast_back")
+    }() ?? nil!
+    
+    var totalTime: String! {
+        didSet {
+            self.totalTimeLabel.text = totalTime
+        }
+    }
+    
+    var currentTime: String! {
+        didSet {
+            self.currentTimeLabel.text = currentTime
+        }
+    }
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -77,11 +97,19 @@ class JWProgressView: UIView {
     }
     
     func showFastBack() {
-        fastView.image = UIImage.init(named: "player_fast_back")
+        fastView.image = backImg
     }
     
     func showFastForward() {
-        fastView.image = UIImage.init(named: "player_fast_forward")
+        fastView.image = forwardImg
+    }
+    
+    func show() {
+        self.isHidden = false
+    }
+    
+    func hide() {
+        self.isHidden = true
     }
     
 }

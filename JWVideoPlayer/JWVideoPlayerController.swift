@@ -180,6 +180,7 @@ extension JWVideoPlayerController: JWVideoPlayerDelegate {
             playerView.seekToTime(time:seekTime, completeHandler: { (status) in
                 if status {
                     self.isSliding = false
+                    
                 } else {
                     NSLog("进度跳转出错")
                 }
