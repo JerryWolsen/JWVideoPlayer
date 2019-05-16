@@ -61,7 +61,7 @@ class JWVideoPlayerView: UIView {
         doubleTap = UITapGestureRecognizer.init(target: self, action: #selector(handleDoubleTap))
         doubleTap.numberOfTapsRequired = 2
         self.addGestureRecognizer(doubleTap)
-        self.backgroundColor = UIColor(red: 233/255, green: 1, blue: 1, alpha: 0.5)
+        self.backgroundColor = UIColor(red: 188.0/255, green: 188.0/255, blue: 188.0/255, alpha: 0.5)
         
         light = UIScreen.main.brightness
         
@@ -76,6 +76,7 @@ class JWVideoPlayerView: UIView {
         self.addSubview(voiceView)
         pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(pan:)))
         self.addGestureRecognizer(pan)
+        
     }
     
     override func layoutSubviews() {
@@ -127,6 +128,14 @@ class JWVideoPlayerView: UIView {
         
         NotificationCenter.default.addObserver(self, selector: #selector(playerDidFinishPlaying(note:)), name: .AVPlayerItemDidPlayToEndTime, object: playerItem)
         
+        let controlView: JWVideoControlView = JWVideoControlView.create()
+        self.addSubview(controlView)
+        controlView.snp.makeConstraints { (make) in
+            make.bottom.equalToSuperview()
+            make.left.equalToSuperview()
+            make.right.equalToSuperview()
+            make.height.equalTo(100)
+        }
     }
     
     func play() {

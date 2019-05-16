@@ -20,6 +20,8 @@
 		A8E1422F2281647A005CC692 /* JWVideoPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8E1422E2281647A005CC692 /* JWVideoPlayerView.swift */; };
 		A8E1423122816C7D005CC692 /* JWVideoPlayerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8E1423022816C7D005CC692 /* JWVideoPlayerController.swift */; };
 		A8E142332285747B005CC692 /* JWTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8E142322285747B005CC692 /* JWTools.swift */; };
+		A8F371C4228D349100F2C501 /* JWVideoControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F371C3228D349100F2C501 /* JWVideoControlView.swift */; };
+		A8F371C6228D363B00F2C501 /* JWVideoControlView.xib in Resources */ = {isa = PBXBuildFile; fileRef = A8F371C5228D363B00F2C501 /* JWVideoControlView.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,6 +61,8 @@
 		A8E1422E2281647A005CC692 /* JWVideoPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWVideoPlayerView.swift; sourceTree = "<group>"; };
 		A8E1423022816C7D005CC692 /* JWVideoPlayerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWVideoPlayerController.swift; sourceTree = "<group>"; };
 		A8E142322285747B005CC692 /* JWTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTools.swift; sourceTree = "<group>"; };
+		A8F371C3228D349100F2C501 /* JWVideoControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWVideoControlView.swift; sourceTree = "<group>"; };
+		A8F371C5228D363B00F2C501 /* JWVideoControlView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = JWVideoControlView.xib; sourceTree = "<group>"; };
 		F2D8902EDDF2E017A0940DAF /* Pods-JWVideoPlayer.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JWVideoPlayer.release.xcconfig"; path = "Pods/Target Support Files/Pods-JWVideoPlayer/Pods-JWVideoPlayer.release.xcconfig"; sourceTree = "<group>"; };
 		FBB5A82A1610F459B2632848 /* Pods-JWVideoPlayer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JWVideoPlayer.debug.xcconfig"; path = "Pods/Target Support Files/Pods-JWVideoPlayer/Pods-JWVideoPlayer.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -129,6 +133,8 @@
 				A882FECA228A603F009261FF /* JWProgressView.swift */,
 				A8E1422E2281647A005CC692 /* JWVideoPlayerView.swift */,
 				A8E1423022816C7D005CC692 /* JWVideoPlayerController.swift */,
+				A8F371C3228D349100F2C501 /* JWVideoControlView.swift */,
+				A8F371C5228D363B00F2C501 /* JWVideoControlView.xib */,
 				A8E142322285747B005CC692 /* JWTools.swift */,
 				A834B0F4227E72F100715661 /* Assets.xcassets */,
 				A834B0F6227E72F100715661 /* LaunchScreen.storyboard */,
@@ -270,6 +276,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A8F371C6228D363B00F2C501 /* JWVideoControlView.xib in Resources */,
 				A834B0F8227E72F100715661 /* LaunchScreen.storyboard in Resources */,
 				A834B0F5227E72F100715661 /* Assets.xcassets in Resources */,
 			);
@@ -345,6 +352,7 @@
 			files = (
 				A882FECB228A603F009261FF /* JWProgressView.swift in Sources */,
 				A8E1422B227EC7B5005CC692 /* JWVideoGridCell.swift in Sources */,
+				A8F371C4228D349100F2C501 /* JWVideoControlView.swift in Sources */,
 				A8E1423122816C7D005CC692 /* JWVideoPlayerController.swift in Sources */,
 				A834B0F0227E72F000715661 /* JWVideoListViewController.swift in Sources */,
 				A8E1422D228006AE005CC692 /* JWBaseNavigationController.swift in Sources */,
