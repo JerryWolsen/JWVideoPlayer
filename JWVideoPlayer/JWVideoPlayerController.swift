@@ -40,7 +40,6 @@ class JWVideoPlayerController: UIViewController {
             return
         }
         let direction = UIDevice.current.orientation
-        NSLog("%f", view.bounds.width)
         let otherWidth = direction == .portrait ? 200 : 300
         self.slider.frame = CGRect(x: 0, y: 0, width: Int(view.bounds.width) - otherWidth, height: 50)
     }
@@ -151,7 +150,6 @@ class JWVideoPlayerController: UIViewController {
         PHImageManager.default().requestPlayerItem(forVideo: currentAsset, options: options) { playerItem, info  in
             DispatchQueue.main.sync {
                 self.playerView.setupPlayerLayer(playerItem: playerItem!)
-                self.playerView.play()
                 self.link = CADisplayLink(target: self, selector: #selector(self.update))
                 self.link.add(to: .main, forMode: .default)
             }
@@ -176,11 +174,13 @@ extension JWVideoPlayerController: JWVideoPlayerDelegate {
     func player(playerView: JWVideoPlayerView, sliderTouchUpOut slider: UISlider) {
         if playerView.status() == AVPlayer.Status.readyToPlay{
             let duration = slider.value * Float(playerView.totalTime())
-            let seekTime = CMTimeMake(value: Int64(duration), timescale: 1)
+            let seekTime = CMTime(seconds: Double(duration), preferredTimescale: 600)
             playerView.seekToTime(time:seekTime, completeHandler: { (status) in
                 if status {
                     self.isSliding = false
-                    
+                    if !self.playerView.isPlaying {
+                        self.playerView.play()
+                    }
                 } else {
                     NSLog("进度跳转出错")
                 }

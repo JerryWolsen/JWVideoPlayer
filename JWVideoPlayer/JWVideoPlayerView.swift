@@ -16,24 +16,25 @@ protocol JWVideoPlayerDelegate: class {
 
 class JWVideoPlayerView: UIView {
     
+    // MARK: public var
     var isPlaying: Bool = false
     var doubleTap: UITapGestureRecognizer!
-    var pan: UIPanGestureRecognizer!
-    var light: CGFloat! {
+    weak var delegate: JWVideoPlayerDelegate?
+    
+    // MARK: private var
+    private var pan: UIPanGestureRecognizer!
+    private var light: CGFloat! {
         didSet {
             NSLog("%.2f", light)
             UIScreen.main.brightness = light ?? 0.5
         }
     }
-    var voiceView: MPVolumeView!
-    var volumeSlider: UISlider!
-    weak var delegate: JWVideoPlayerDelegate?
-    
-    var width = UIScreen.main.bounds.width
+    private var voiceView: MPVolumeView!
+    private var volumeSlider: UISlider!
     private var playerLayer: AVPlayerLayer!
     private var playerItem: AVPlayerItem?
     private var playButton: UIButton!
-    
+    private var width = UIScreen.main.bounds.width
     private lazy var progressView: JWProgressView = {
         let pv = JWProgressView()
         self.addSubview(pv)
@@ -45,7 +46,9 @@ class JWVideoPlayerView: UIView {
         })
         return pv
     }()
+    private let preferTimeScale: CMTimeScale = 600
     
+    // MARK: life cycle
     override init(frame: CGRect) {
         super.init(frame: frame)
         
@@ -75,6 +78,29 @@ class JWVideoPlayerView: UIView {
         self.addGestureRecognizer(pan)
     }
     
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        guard playerLayer != nil else {
+            return
+        }
+        playerLayer.frame = self.layer.bounds
+        width = self.bounds.width
+    }
+    
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == "status" && change != nil {
+            let item: AVPlayerItem = object as! AVPlayerItem
+            if item.status == .readyToPlay {
+                NSLog("Jerry: play start")
+                self.play()
+            } else if item.status == .failed {
+                NSLog("AVPlayerStatusFailed")
+            } else {
+                NSLog("AVPlayerStatusUnknown")
+            }
+        }
+    }
+    
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -82,8 +108,11 @@ class JWVideoPlayerView: UIView {
     deinit {
         self.removeGestureRecognizer(doubleTap)
         self.removeGestureRecognizer(pan)
+        NotificationCenter.default.removeObserver(self)
+        playerItem?.removeObserver(self, forKeyPath: "status")
     }
     
+    // MARK: public method
     func setupPlayerLayer(playerItem: AVPlayerItem) {
         self.playerItem = playerItem
         let player = AVPlayer(playerItem: playerItem)
@@ -92,14 +121,22 @@ class JWVideoPlayerView: UIView {
         playerLayer.videoGravity = .resizeAspect
         playerLayer.frame = self.layer.bounds
         self.layer.addSublayer(playerLayer)
+        
+        playerItem.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions.new
+            , context: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(playerDidFinishPlaying(note:)), name: .AVPlayerItemDidPlayToEndTime, object: playerItem)
+        
     }
     
     func play() {
+        hidePlayButton()
         playerLayer.player!.play()
         isPlaying = true
     }
     
     func pause() {
+        showPlayButton()
         playerLayer.player!.pause()
         isPlaying = false
     }
@@ -113,32 +150,54 @@ class JWVideoPlayerView: UIView {
     }
     
     func currentTime() -> Float64 {
-        return CMTimeGetSeconds(playerLayer.player?.currentTime() ?? CMTime(value: 0, timescale: 1))
+        return CMTimeGetSeconds(playerLayer.player?.currentTime() ?? CMTime(value: 0, timescale: preferTimeScale))
     }
     
     func totalTime() -> Float64{
-        let duration = playerItem?.duration ?? CMTime(value: 0, timescale: 1)
+        let duration = playerItem?.duration ?? CMTime(value: 0, timescale: preferTimeScale)
         guard duration.value != 0 else {
             return 0
         }
         return  TimeInterval(duration.value) / TimeInterval(duration.timescale)
     }
     
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        guard playerLayer != nil else {
+    // MARK: private method
+    private func showPlayButton() {
+        
+        guard playButton == nil else {
+            playButton.isHidden = false
             return
         }
-        playerLayer.frame = self.layer.bounds
-        width = self.bounds.width
+        
+        playButton = UIButton(type: .custom)
+        self.addSubview(playButton)
+        playButton.setBackgroundImage(UIImage(named: "play_button"), for: .normal)
+        playButton.addTarget(self, action: #selector(onPlayBtnClicked), for: .touchUpInside)
+        playButton.snp.makeConstraints { (make) in
+            make.center.equalTo(self)
+            make.width.equalTo(80)
+            make.height.equalTo(80)
+        }
+        
+    }
+    
+    private func hidePlayButton() {
+        guard playButton != nil else {
+            return
+        }
+        playButton.isHidden = true
+    }
+    
+    // MARK: objc selector method
+    @objc private func playerDidFinishPlaying(note: NSNotification) {
+        NSLog("Jerry: play end")
+        self.isPlaying = false
     }
     
     @objc private func handleDoubleTap() {
         if isPlaying == true {
-            showPlayButton()
             pause()
         } else {
-            hidePlayButton()
             play()
         }
     }
@@ -170,7 +229,6 @@ class JWVideoPlayerView: UIView {
                     moveTime = cTime
                 }
                 destinationTime = cTime - moveTime
-                //NSLog("向左滑动 %.2fs", moveTime)
                 progressView.currentTime = JWTools.formatPlayTime(seconds: destinationTime)
             } else {
                 progressView.showFastForward()
@@ -178,18 +236,16 @@ class JWVideoPlayerView: UIView {
                     moveTime = tTime - cTime
                 }
                 destinationTime = cTime + moveTime
-                //NSLog("向右滑动 %.2fs", moveTime)
                 progressView.currentTime = JWTools.formatPlayTime(seconds: destinationTime)
             }
             
             if pan.state == .ended {
                 progressView.hide()
-                self.seekToTime(time: CMTime(seconds: destinationTime, preferredTimescale: 1), completeHandler: { (status) in
+                self.seekToTime(time: CMTime(seconds: destinationTime, preferredTimescale: preferTimeScale), completeHandler: { (status) in
                         if status {
-//                            if !self.isPlaying {
-//                                self.hidePlayButton()
-//                                self.play()
-//                            }
+                            if !self.isPlaying {
+                                self.play()
+                            }
                         } else {
                             NSLog("seek error")
                         }
@@ -230,33 +286,7 @@ class JWVideoPlayerView: UIView {
         }
     }
     
-    private func showPlayButton() {
-        
-        guard playButton == nil else {
-            playButton.isHidden = false
-            return
-        }
-        
-        playButton = UIButton(type: .custom)
-        self.addSubview(playButton)
-        playButton.setBackgroundImage(UIImage(named: "play_button"), for: .normal)
-        playButton.addTarget(self, action: #selector(onPlayBtnClicked), for: .touchUpInside)
-        playButton.snp.makeConstraints { (make) in
-            make.center.equalTo(self)
-            make.width.equalTo(80)
-            make.height.equalTo(80)
-        }
-        
-    }
-    
-    private func hidePlayButton() {
-        
-        playButton.isHidden = true
-        
-    }
-    
     @objc private func onPlayBtnClicked() {
-        hidePlayButton()
         play()
     }
     
