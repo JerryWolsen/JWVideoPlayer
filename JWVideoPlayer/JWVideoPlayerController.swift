@@ -27,6 +27,7 @@ class JWVideoPlayerController: UIViewController {
     var totalTimeLabel: UILabel!
     var link: CADisplayLink!
     
+    // MARK: life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
@@ -44,6 +45,62 @@ class JWVideoPlayerController: UIViewController {
         self.slider.frame = CGRect(x: 0, y: 0, width: Int(view.bounds.width) - otherWidth, height: 50)
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        self.link.invalidate()
+    }
+    
+    deinit {
+        //self.view.removeGestureRecognizer(singleTap)
+    }
+    
+    // MARK: public method
+    func setupParameters(result: PHFetchResult<PHAsset>, index: Int) {
+        asset = result
+        currentIndex = index
+    }
+    
+    // MARK: private method
+    private func setupNavigation() {
+        navigationController?.isNavigationBarHidden = true
+        navigationController?.isToolbarHidden = true
+        //        singleTap = UITapGestureRecognizer(target: self, action: #selector(handleSingleTap))
+        //        self.view.addGestureRecognizer(singleTap)
+        //        singleTap.require(toFail: playerView.doubleTap)
+    }
+    
+    private func setupView() {
+        view.backgroundColor = .white
+        playerView = JWVideoPlayerView()
+        view.addSubview(playerView)
+        playerView.snp.makeConstraints { (make) in
+            make.edges.equalToSuperview()
+        }
+        playerView.delegate = self
+        let filename = currentAsset.value(forKey: "filename")
+        title = filename as? String
+    }
+    
+    private func playVideo() {
+        
+        guard currentAsset != nil else {
+            return
+        }
+        
+        let options = PHVideoRequestOptions()
+        options.isNetworkAccessAllowed = true
+        options.deliveryMode = .automatic
+        
+        PHImageManager.default().requestPlayerItem(forVideo: currentAsset, options: options) { playerItem, info  in
+            DispatchQueue.main.sync {
+                self.playerView.setupPlayerLayer(playerItem: playerItem!)
+                self.link = CADisplayLink(target: self, selector: #selector(self.update))
+                self.link.add(to: .main, forMode: .default)
+            }
+        }
+    }
+    
+    // MARK: private objc method
     @objc private func update() {
         let currentTime = playerView.currentTime()
         let totalTime = playerView.totalTime()
@@ -56,14 +113,6 @@ class JWVideoPlayerController: UIViewController {
         if (slider != nil) && (!isSliding) {
             slider.value = Float(currentTime / totalTime)
         }
-    }
-    
-    private func setupNavigation() {
-        navigationController?.isNavigationBarHidden = true
-        navigationController?.isToolbarHidden = true
-        singleTap = UITapGestureRecognizer(target: self, action: #selector(handleSingleTap))
-        self.view.addGestureRecognizer(singleTap)
-        singleTap.require(toFail: playerView.doubleTap)
     }
     
     @objc func handleSingleTap() {
@@ -112,53 +161,6 @@ class JWVideoPlayerController: UIViewController {
             fixedSpace2.width = 10
             toolbarItems = [currentTimeItem, fixedSpace1, sliderItem, fixedSpace2, totalTimeItem]
         }
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        self.link.invalidate()
-    }
-    
-    deinit {
-        self.view.removeGestureRecognizer(singleTap)
-    }
-    
-    private func setupView() {
-        view.backgroundColor = .white
-        playerView = JWVideoPlayerView()
-        view.addSubview(playerView)
-        playerView.snp.makeConstraints { (make) in
-            make.edges.equalToSuperview()
-        }
-        playerView.delegate = self
-        
-        let filename = currentAsset.value(forKey: "filename")
-    
-        title = filename as? String
-    }
-    
-    private func playVideo() {
-        
-        guard currentAsset != nil else {
-            return
-        }
-        
-        let options = PHVideoRequestOptions()
-        options.isNetworkAccessAllowed = true
-        options.deliveryMode = .automatic
-        
-        PHImageManager.default().requestPlayerItem(forVideo: currentAsset, options: options) { playerItem, info  in
-            DispatchQueue.main.sync {
-                self.playerView.setupPlayerLayer(playerItem: playerItem!)
-                self.link = CADisplayLink(target: self, selector: #selector(self.update))
-                self.link.add(to: .main, forMode: .default)
-            }
-        }
-    }
-    
-    func setupParameters(result: PHFetchResult<PHAsset>, index: Int) {
-        asset = result
-        currentIndex = index
     }
     
     @objc func onSliderTouchDown() {

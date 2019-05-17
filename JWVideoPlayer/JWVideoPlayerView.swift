@@ -18,7 +18,6 @@ class JWVideoPlayerView: UIView {
     
     // MARK: public var
     var isPlaying: Bool = false
-    var doubleTap: UITapGestureRecognizer!
     weak var delegate: JWVideoPlayerDelegate?
     
     // MARK: private var
@@ -29,12 +28,25 @@ class JWVideoPlayerView: UIView {
             UIScreen.main.brightness = light ?? 0.5
         }
     }
+    private var doubleTap: UITapGestureRecognizer!
+    private var singleTap: UITapGestureRecognizer!
     private var voiceView: MPVolumeView!
     private var volumeSlider: UISlider!
     private var playerLayer: AVPlayerLayer!
     private var playerItem: AVPlayerItem?
     private var playButton: UIButton!
     private var width = UIScreen.main.bounds.width
+    private lazy var controlView: JWVideoControlView = {
+        let controlView: JWVideoControlView = JWVideoControlView.create()
+        self.addSubview(controlView)
+        controlView.snp.makeConstraints { (make) in
+            make.bottom.equalToSuperview()
+            make.left.equalToSuperview()
+            make.right.equalToSuperview()
+            make.height.equalTo(100)
+        }
+        return controlView
+    }()
     private lazy var progressView: JWProgressView = {
         let pv = JWProgressView()
         self.addSubview(pv)
@@ -53,18 +65,15 @@ class JWVideoPlayerView: UIView {
         super.init(frame: frame)
         
         do {
-             try AVAudioSession.sharedInstance().setCategory(.playback)
+            try AVAudioSession.sharedInstance().setCategory(.playback)
         } catch {
             print("Setting category to AVAudioSessionCategoryPlayback failed.")
         }
        
-        doubleTap = UITapGestureRecognizer.init(target: self, action: #selector(handleDoubleTap))
-        doubleTap.numberOfTapsRequired = 2
-        self.addGestureRecognizer(doubleTap)
         self.backgroundColor = UIColor(red: 188.0/255, green: 188.0/255, blue: 188.0/255, alpha: 0.5)
         
         light = UIScreen.main.brightness
-        
+
         voiceView = MPVolumeView(frame: self.bounds)
         for subview in voiceView.subviews {
             if let slider = subview as? UISlider {
@@ -74,8 +83,8 @@ class JWVideoPlayerView: UIView {
         }
         voiceView.isHidden = true
         self.addSubview(voiceView)
-        pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(pan:)))
-        self.addGestureRecognizer(pan)
+       
+        setupGestureHandlers()
         
     }
     
@@ -108,6 +117,7 @@ class JWVideoPlayerView: UIView {
     
     deinit {
         self.removeGestureRecognizer(doubleTap)
+        self.removeGestureRecognizer(singleTap)
         self.removeGestureRecognizer(pan)
         NotificationCenter.default.removeObserver(self)
         playerItem?.removeObserver(self, forKeyPath: "status")
@@ -127,15 +137,6 @@ class JWVideoPlayerView: UIView {
             , context: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(playerDidFinishPlaying(note:)), name: .AVPlayerItemDidPlayToEndTime, object: playerItem)
-        
-        let controlView: JWVideoControlView = JWVideoControlView.create()
-        self.addSubview(controlView)
-        controlView.snp.makeConstraints { (make) in
-            make.bottom.equalToSuperview()
-            make.left.equalToSuperview()
-            make.right.equalToSuperview()
-            make.height.equalTo(100)
-        }
     }
     
     func play() {
@@ -171,6 +172,21 @@ class JWVideoPlayerView: UIView {
     }
     
     // MARK: private method
+    private func setupGestureHandlers() {
+        
+        doubleTap = UITapGestureRecognizer.init(target: self, action: #selector(handleDoubleTap))
+        doubleTap.numberOfTapsRequired = 2
+        self.addGestureRecognizer(doubleTap)
+        
+        singleTap = UITapGestureRecognizer(target: self, action: #selector(handleSingleTap))
+        self.addGestureRecognizer(singleTap)
+        singleTap.require(toFail: doubleTap)
+        
+        pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(pan:)))
+        self.addGestureRecognizer(pan)
+        
+    }
+    
     private func showPlayButton() {
         
         guard playButton == nil else {
@@ -209,6 +225,16 @@ class JWVideoPlayerView: UIView {
         } else {
             play()
         }
+    }
+    
+    @objc private func handleSingleTap() {
+        self.firstViewController()?.navigationController?.isNavigationBarHidden = !((self.firstViewController()?.navigationController?.isNavigationBarHidden)!)
+        if self.subviews.contains(self.controlView) {
+            self.controlView.isHidden = !self.controlView.isHidden
+        } else {
+            self.controlView.isHidden = false
+        }
+        
     }
     
     @objc private func handlePan(pan: UIPanGestureRecognizer) {
@@ -299,4 +325,18 @@ class JWVideoPlayerView: UIView {
         play()
     }
     
+}
+
+extension JWVideoPlayerView {
+    //返回该view所在VC
+    func firstViewController() -> UIViewController? {
+        for view in sequence(first: self.superview, next: { $0?.superview }) {
+            if let responder = view?.next {
+                if responder.isKind(of: UIViewController.self){
+                    return responder as? UIViewController
+                }
+            }
+        }
+        return nil
+    }
 }
