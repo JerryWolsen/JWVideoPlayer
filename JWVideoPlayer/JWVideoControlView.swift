@@ -15,8 +15,12 @@ class JWVideoControlView: UIView {
     @IBOutlet weak var totalTimeLabel: UILabel!
     @IBOutlet weak var playButton: UIButton!
     
+    typealias Block = () -> ()
+    var playBtnBlock: Block = {() in print("hello")}
+    
     @IBAction func onPlayBtnClicked(_ sender: Any) {
         NSLog("click play btn")
+        playBtnBlock()
     }
     
     static func create() -> JWVideoControlView {

@@ -45,6 +45,11 @@ class JWVideoPlayerView: UIView {
             make.right.equalToSuperview()
             make.height.equalTo(100)
         }
+        controlView.playBtnBlock = { [weak self]() in
+            let imageName = self?.isPlaying == true ? "Play" : "Pause"
+            self?.controlView.playButton.setImage(UIImage(named: imageName), for: .normal)
+            self?.isPlaying == true ? self?.pause() : self?.play()
+        }
         return controlView
     }()
     private lazy var progressView: JWProgressView = {
@@ -143,12 +148,15 @@ class JWVideoPlayerView: UIView {
         hidePlayButton()
         playerLayer.player!.play()
         isPlaying = true
+        self.controlView.playButton.setImage(UIImage(named: "Pause"), for: .normal)
+        self.controlView.isHidden = true
     }
     
     func pause() {
         showPlayButton()
         playerLayer.player!.pause()
         isPlaying = false
+        self.controlView.playButton.setImage(UIImage(named: "Play"), for: .normal)
     }
     
     func status() -> AVPlayer.Status {
@@ -220,11 +228,7 @@ class JWVideoPlayerView: UIView {
     }
     
     @objc private func handleDoubleTap() {
-        if isPlaying == true {
-            pause()
-        } else {
-            play()
-        }
+       isPlaying == true ? pause() : play()
     }
     
     @objc private func handleSingleTap() {
@@ -286,9 +290,7 @@ class JWVideoPlayerView: UIView {
                         }
                 })
             }
-            
         } else {
-            
             if locationPoint.x < (self.frame.width / 2) {
                 if movePoint.y < 0 {
                     if light.isLess(than: 1) {
