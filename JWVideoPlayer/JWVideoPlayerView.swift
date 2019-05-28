@@ -10,17 +10,13 @@ import UIKit
 import AVKit
 import MediaPlayer
 
-protocol JWVideoPlayerDelegate: class {
-    func player(playerView:JWVideoPlayerView, sliderTouchUpOut slider:UISlider)
-}
-
 class JWVideoPlayerView: UIView {
     
     // MARK: public var
     var isPlaying: Bool = false
-    weak var delegate: JWVideoPlayerDelegate?
     
     // MARK: private var
+    private var link: CADisplayLink!
     private var pan: UIPanGestureRecognizer!
     private var light: CGFloat! {
         didSet {
@@ -50,6 +46,7 @@ class JWVideoPlayerView: UIView {
             self?.controlView.playButton.setImage(UIImage(named: imageName), for: .normal)
             self?.isPlaying == true ? self?.pause() : self?.play()
         }
+        controlView.delegate = self
         return controlView
     }()
     private lazy var progressView: JWProgressView = {
@@ -142,6 +139,9 @@ class JWVideoPlayerView: UIView {
             , context: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(playerDidFinishPlaying(note:)), name: .AVPlayerItemDidPlayToEndTime, object: playerItem)
+        
+        self.link = CADisplayLink(target: self, selector: #selector(self.update))
+        self.link.add(to: .main, forMode: .default)
     }
     
     func play() {
@@ -222,6 +222,15 @@ class JWVideoPlayerView: UIView {
     }
     
     // MARK: objc selector method
+    @objc private func update() {
+        let currentTime = self.currentTime()
+        let totalTime = self.totalTime()
+    
+        self.controlView.updateCurrentTime(currentTime: currentTime)
+        self.controlView.updateTotalTime(totalTime: totalTime)
+        self.controlView.updateProgress(ratio: Float(currentTime / totalTime))
+    }
+    
     @objc private func playerDidFinishPlaying(note: NSNotification) {
         NSLog("Jerry: play end")
         self.isPlaying = false
@@ -340,5 +349,24 @@ extension JWVideoPlayerView {
             }
         }
         return nil
+    }
+}
+
+extension JWVideoPlayerView: JWProgresSliderDelegate {
+    func player(controlView: JWVideoControlView, sliderTouchUpOut slider: UISlider) {
+        if self.status() == AVPlayer.Status.readyToPlay{
+            let duration = slider.value * Float(self.totalTime())
+            let seekTime = CMTime(seconds: Double(duration), preferredTimescale: 600)
+            self.seekToTime(time:seekTime, completeHandler: {[weak self](status) in
+                if status {
+                    self?.controlView.isSliding = false
+                    if !(self?.isPlaying ?? false) {
+                        self?.play()
+                    }
+                } else {
+                    NSLog("进度跳转出错")
+                }
+            })
+        }
     }
 }
