@@ -12,6 +12,12 @@ protocol JWProgresSliderDelegate: class {
     func player(controlView:JWVideoControlView, sliderTouchUpOut slider:UISlider)
 }
 
+enum PlayMode: Int {
+    case sequence = 1
+    case listRepeat
+    case singleRepeat
+}
+
 class JWVideoControlView: UIView {
     
     typealias Block = () -> ()
@@ -20,11 +26,14 @@ class JWVideoControlView: UIView {
     @IBOutlet weak var currentTimeLabel: UILabel!
     @IBOutlet weak var totalTimeLabel: UILabel!
     @IBOutlet weak var playButton: UIButton!
+    @IBOutlet weak var playModeButton: UIButton!
     
     weak var delegate: JWProgresSliderDelegate?
     
     var playBtnBlock: Block = {() in print("hello")}
     var isSliding = false
+    
+    private var playMode = PlayMode.sequence
     
     static func create() -> JWVideoControlView {
         let view = Bundle.main.loadNibNamed("JWVideoControlView", owner: nil, options: nil)![0] as! JWVideoControlView
@@ -75,21 +84,37 @@ class JWVideoControlView: UIView {
     }
     
     private func setupCurrentLabel() {
-        self.currentTimeLabel.textColor = .green
         self.currentTimeLabel.font.withSize(12)
         self.currentTimeLabel.text = "00:00"
         self.currentTimeLabel.textAlignment = .right
     }
     
     private func setupTotalTimeLabel() {
-        self.totalTimeLabel.textColor = .white
         self.totalTimeLabel.text = "00:00"
         self.totalTimeLabel.textAlignment = .left
     }
     
-    @IBAction func onPlayBtnClicked(_ sender: Any) {
+    @IBAction func onPlayBtnClicked(_ sender: UIButton) {
         NSLog("click play btn")
         playBtnBlock()
+    }
+    
+    @IBAction func onPlayModeButtonClicked(_ sender: UIButton) {
+        NSLog("click play mode \(self.playMode)")
+        self.playMode = PlayMode(rawValue: (self.playMode.rawValue + 1) % 4) ?? .sequence
+        var playModeButtonImageName = ""
+        switch playMode {
+        case .sequence:
+            playModeButtonImageName = "sequence"
+            break
+        case .listRepeat:
+            playModeButtonImageName = "repeat"
+            break
+        case .singleRepeat:
+            playModeButtonImageName = "repeat_single"
+            break
+        }
+        self.playModeButton.setImage(UIImage(named: playModeButtonImageName), for: .normal)
     }
     
     @objc private func onSliderTouchDown() {

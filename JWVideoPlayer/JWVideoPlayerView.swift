@@ -105,6 +105,7 @@ class JWVideoPlayerView: UIView {
             if item.status == .readyToPlay {
                 NSLog("Jerry: play start")
                 self.play()
+                self.initControlView()
             } else if item.status == .failed {
                 NSLog("AVPlayerStatusFailed")
             } else {
@@ -140,7 +141,7 @@ class JWVideoPlayerView: UIView {
         
         NotificationCenter.default.addObserver(self, selector: #selector(playerDidFinishPlaying(note:)), name: .AVPlayerItemDidPlayToEndTime, object: playerItem)
         
-        self.link = CADisplayLink(target: self, selector: #selector(self.update))
+        self.link = CADisplayLink(target: self, selector: #selector(update))
         self.link.add(to: .main, forMode: .default)
     }
     
@@ -148,8 +149,6 @@ class JWVideoPlayerView: UIView {
         hidePlayButton()
         playerLayer.player!.play()
         isPlaying = true
-        self.controlView.playButton.setImage(UIImage(named: "Pause"), for: .normal)
-        self.controlView.isHidden = true
     }
     
     func pause() {
@@ -193,6 +192,11 @@ class JWVideoPlayerView: UIView {
         pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(pan:)))
         self.addGestureRecognizer(pan)
         
+    }
+    
+    private func initControlView() {
+        self.controlView.playButton.setImage(UIImage(named: "Pause"), for: .normal)
+        self.controlView.isHidden = true
     }
     
     private func showPlayButton() {
