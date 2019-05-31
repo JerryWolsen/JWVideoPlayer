@@ -17,6 +17,7 @@ class JWVideoPlayerView: UIView {
     // MARK: public var
     var isPlaying: Bool = false
     var singleTapBlock: Block = {}
+    var playEndBlock: (PlayMode) -> () = {(mode) in }
     
     // MARK: private var
     private var link: CADisplayLink!
@@ -49,6 +50,7 @@ class JWVideoPlayerView: UIView {
             self?.controlView.playButton.setImage(UIImage(named: imageName), for: .normal)
             self?.isPlaying == true ? self?.pause() : self?.play()
         }
+        controlView.layer.zPosition = 100
         controlView.delegate = self
         return controlView
     }()
@@ -89,8 +91,9 @@ class JWVideoPlayerView: UIView {
         voiceView.isHidden = true
         self.addSubview(voiceView)
        
-        setupGestureHandlers()
+        self.setupGestureHandlers()
         
+        self.initControlView()
     }
     
     override func layoutSubviews() {
@@ -108,7 +111,6 @@ class JWVideoPlayerView: UIView {
             if item.status == .readyToPlay {
                 NSLog("Jerry: play start")
                 self.play()
-                self.initControlView()
             } else if item.status == .failed {
                 NSLog("AVPlayerStatusFailed")
             } else {
@@ -282,6 +284,16 @@ class JWVideoPlayerView: UIView {
         }
     }
     
+    private func resetPlayer() {
+        self.isPlaying = false
+        self.controlView.resetTotalTime()
+        self.playerLayer.removeFromSuperlayer()
+        NotificationCenter.default.removeObserver(self)
+        playerItem?.removeObserver(self, forKeyPath: "status")
+        self.link.remove(from: .main, forMode: .default)
+        self.link.invalidate()
+    }
+    
     // MARK: objc selector method
     @objc private func update() {
         let currentTime = self.currentTime()
@@ -294,7 +306,8 @@ class JWVideoPlayerView: UIView {
     
     @objc private func playerDidFinishPlaying(note: NSNotification) {
         NSLog("Jerry: play end")
-        self.isPlaying = false
+        self.resetPlayer()
+        self.playEndBlock(self.controlView.getPlayMode())
     }
     
     @objc private func handleDoubleTap() {
@@ -328,20 +341,6 @@ class JWVideoPlayerView: UIView {
         play()
     }
     
-}
-
-extension JWVideoPlayerView {
-    //返回该view所在VC
-    func firstViewController() -> UIViewController? {
-        for view in sequence(first: self.superview, next: { $0?.superview }) {
-            if let responder = view?.next {
-                if responder.isKind(of: UIViewController.self){
-                    return responder as? UIViewController
-                }
-            }
-        }
-        return nil
-    }
 }
 
 extension JWVideoPlayerView: JWProgresSliderDelegate {

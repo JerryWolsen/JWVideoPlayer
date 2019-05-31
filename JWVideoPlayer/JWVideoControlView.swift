@@ -57,10 +57,18 @@ class JWVideoControlView: UIView {
         }
     }
     
+    func resetTotalTime() {
+        totalTimeLabel.text = "00:00"
+    }
+    
     func updateProgress(ratio: Float) {
         if (slider != nil) && (!isSliding) {
             slider.value = ratio
         }
+    }
+    
+    func getPlayMode() -> PlayMode{
+        return self.playMode
     }
     
     private func setupView() {

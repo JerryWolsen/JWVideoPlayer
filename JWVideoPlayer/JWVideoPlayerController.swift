@@ -72,6 +72,9 @@ class JWVideoPlayerController: UIViewController {
                 self?.statusBarStyle = (!isBarHidden) ? .default : .lightContent
             }
         }
+        playerView.playEndBlock = { [weak self](mode) in
+            self?.playNextVideo(mode: mode)
+        }
         let filename = currentAsset.value(forKey: "filename")
         title = filename as? String
     }
@@ -91,6 +94,23 @@ class JWVideoPlayerController: UIViewController {
                 self.playerView.setupPlayerLayer(playerItem: playerItem!)
             }
         }
+    }
+    
+    private func playNextVideo(mode: PlayMode) {
+        let videoCount = asset.count
+        var nextIndex = currentIndex + 1
+        if nextIndex == videoCount {
+            switch mode {
+            case .listRepeat:
+                nextIndex = 0
+                break
+            default:
+               JWTools.showAlert(title: "播放到底了", message: "已经是最后一个视频", viewController: self)
+               return
+            }
+        }
+        currentIndex = nextIndex
+        playVideo()
     }
     
 }
