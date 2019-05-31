@@ -12,8 +12,11 @@ import MediaPlayer
 
 class JWVideoPlayerView: UIView {
     
+    typealias Block = () -> ()
+    
     // MARK: public var
     var isPlaying: Bool = false
+    var singleTapBlock: Block = {}
     
     // MARK: private var
     private var link: CADisplayLink!
@@ -31,7 +34,7 @@ class JWVideoPlayerView: UIView {
     private var playerLayer: AVPlayerLayer!
     private var playerItem: AVPlayerItem?
     private var playButton: UIButton!
-    private var width = UIScreen.main.bounds.width
+    private var screenWidth = UIScreen.main.bounds.width
     private lazy var controlView: JWVideoControlView = {
         let controlView: JWVideoControlView = JWVideoControlView.create()
         self.addSubview(controlView)
@@ -96,7 +99,7 @@ class JWVideoPlayerView: UIView {
             return
         }
         playerLayer.frame = self.layer.bounds
-        width = self.bounds.width
+        screenWidth = self.bounds.width
     }
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
@@ -170,7 +173,7 @@ class JWVideoPlayerView: UIView {
         return CMTimeGetSeconds(playerLayer.player?.currentTime() ?? CMTime(value: 0, timescale: preferTimeScale))
     }
     
-    func totalTime() -> Float64{
+    func totalTime() -> Float64 {
         let duration = playerItem?.duration ?? CMTime(value: 0, timescale: preferTimeScale)
         guard duration.value != 0 else {
             return 0
@@ -225,6 +228,60 @@ class JWVideoPlayerView: UIView {
         playButton.isHidden = true
     }
     
+    private func initProgressView() {
+        progressView.show()
+        progressView.totalTime = JWTools.formatPlayTime(seconds: totalTime())
+        progressView.currentTime = JWTools.formatPlayTime(seconds: currentTime())
+    }
+    
+    private func calculateCurrentSeekTime(moveX: CGFloat) -> TimeInterval {
+        let moveTime = Double(moveX / screenWidth) * totalTime() * 0.8
+        var destinationTime = self.currentTime() + moveTime
+        destinationTime = destinationTime < 0 ? 0 : destinationTime
+        destinationTime = destinationTime > totalTime() ? totalTime() : destinationTime
+        
+        return destinationTime
+    }
+    
+    private func handleHorizonalPan(moveX: CGFloat, state: UIPanGestureRecognizer.State) {
+        
+        if state == .began {
+            initProgressView()
+        }
+        
+        let currentSeekTime = calculateCurrentSeekTime(moveX: moveX)
+        moveX > 0 ? progressView.showFastForward() : progressView.showFastBack()
+        progressView.currentTime = JWTools.formatPlayTime(seconds: currentSeekTime)
+        
+        if state == .ended {
+            progressView.hide()
+            self.seekToTime(time: CMTime(seconds: currentSeekTime, preferredTimescale: preferTimeScale), completeHandler: { (status) in
+                (status && !self.isPlaying) ? self.play() : NSLog("seek error")
+            })
+        }
+    }
+    
+    private func handleVerticalPan(isLeft: Bool, moveY: CGFloat) {
+        isLeft ? adjustLight(moveY: moveY) : adjustVolume(moveY: moveY)
+    }
+    
+    private func adjustLight(moveY: CGFloat) {
+        if moveY < 0 {
+            light = light.isLess(than: 1) ? light + 0.02 : 1
+        } else {
+            light = light.isLess(than: 0) ? 0 : light - 0.02
+        }
+    }
+    
+    private func adjustVolume(moveY: CGFloat) {
+        let volume = self.volumeSlider.value
+        if moveY < 0 {
+            self.volumeSlider.value = volume.isLess(than: 1) ? volume + 0.01 : 1
+        } else {
+            self.volumeSlider.value = volume.isLess(than: 0) ? 0 : volume - 0.01
+        }
+    }
+    
     // MARK: objc selector method
     @objc private func update() {
         let currentTime = self.currentTime()
@@ -245,94 +302,25 @@ class JWVideoPlayerView: UIView {
     }
     
     @objc private func handleSingleTap() {
-        self.firstViewController()?.navigationController?.isNavigationBarHidden = !((self.firstViewController()?.navigationController?.isNavigationBarHidden)!)
         if self.subviews.contains(self.controlView) {
             self.controlView.isHidden = !self.controlView.isHidden
         } else {
             self.controlView.isHidden = false
         }
         
+        singleTapBlock()
     }
     
     @objc private func handlePan(pan: UIPanGestureRecognizer) {
         let movePoint = pan.translation(in: pan.view)
+        let locationPoint = pan.location(in: pan.view)
         let absX = abs(movePoint.x)
         let absY = abs(movePoint.y)
         
-        let locationPoint = pan.location(in: pan.view)
-        
-        if pan.state == .began {
-            if absX > absY {
-                progressView.show()
-                progressView.totalTime = JWTools.formatPlayTime(seconds: totalTime())
-                progressView.currentTime = JWTools.formatPlayTime(seconds: currentTime())
-            }
-        }
-        
         if absX > absY {
-            let tTime = totalTime()
-            let cTime = currentTime()
-            var moveTime = Double(absX / width) * totalTime() * 0.8
-            var destinationTime = 0.0
-            if movePoint.x < 0 {
-                progressView.showFastBack()
-              
-                if cTime - moveTime < 0 {
-                    moveTime = cTime
-                }
-                destinationTime = cTime - moveTime
-                progressView.currentTime = JWTools.formatPlayTime(seconds: destinationTime)
-            } else {
-                progressView.showFastForward()
-                if(cTime + moveTime > tTime) {
-                    moveTime = tTime - cTime
-                }
-                destinationTime = cTime + moveTime
-                progressView.currentTime = JWTools.formatPlayTime(seconds: destinationTime)
-            }
-            
-            if pan.state == .ended {
-                progressView.hide()
-                self.seekToTime(time: CMTime(seconds: destinationTime, preferredTimescale: preferTimeScale), completeHandler: { (status) in
-                        if status {
-                            if !self.isPlaying {
-                                self.play()
-                            }
-                        } else {
-                            NSLog("seek error")
-                        }
-                })
-            }
+            handleHorizonalPan(moveX: movePoint.x, state: pan.state)
         } else {
-            if locationPoint.x < (self.frame.width / 2) {
-                if movePoint.y < 0 {
-                    if light.isLess(than: 1) {
-                        light = light + 0.02
-                    } else {
-                        light = 1
-                    }
-                } else {
-                    light = light - 0.02
-                    if light.isLess(than: 0){
-                        light = 0
-                    }
-                }
-            } else {
-                let volume = self.volumeSlider.value
-                NSLog("%2f", volume)
-                if movePoint.y < 0 {
-                    if volume.isLess(than: 1) {
-                        self.volumeSlider.value = volume + 0.01
-                    } else {
-                        self.volumeSlider.value = 1
-                    }
-                } else {
-                    self.volumeSlider.value = volume - 0.01
-                    if self.volumeSlider.value.isLess(than: 0){
-                        self.volumeSlider.value = 0
-                    }
-                }
-            }
+            handleVerticalPan(isLeft: locationPoint.x < (self.frame.width / 2), moveY: movePoint.y)
         }
     }
     

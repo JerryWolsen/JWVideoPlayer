@@ -13,6 +13,10 @@ class JWBaseNavigationController: UINavigationController {
     override func viewDidLoad() {
         super.viewDidLoad()
         isToolbarHidden = false
+        navigationBar.isTranslucent = true
+        navigationBar.barStyle = .black
+        navigationBar.titleTextAttributes =
+            [NSAttributedString.Key.foregroundColor: UIColor.white]
     }
     
     override var shouldAutorotate: Bool {
@@ -23,4 +27,7 @@ class JWBaseNavigationController: UINavigationController {
         return .default
     }
 
+    override var childForStatusBarStyle: UIViewController? {
+        return self.topViewController
+    }
 }

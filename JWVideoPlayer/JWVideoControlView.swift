@@ -30,7 +30,7 @@ class JWVideoControlView: UIView {
     
     weak var delegate: JWProgresSliderDelegate?
     
-    var playBtnBlock: Block = {() in print("hello")}
+    var playBtnBlock: Block = {}
     var isSliding = false
     
     private var playMode = PlayMode.sequence

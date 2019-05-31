@@ -54,6 +54,10 @@ class JWVideoListViewController: UIViewController, UICollectionViewDataSource, U
         }
     }
     
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+    
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         let width = view.bounds.inset(by: view.safeAreaInsets).width

@@ -21,6 +21,12 @@ class JWVideoPlayerController: UIViewController {
     }
     var playerView: JWVideoPlayerView!
     
+    var statusBarStyle: UIStatusBarStyle = .default {
+        didSet {
+            setNeedsStatusBarAppearanceUpdate()
+        }
+    }
+    
     // MARK: life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,6 +37,10 @@ class JWVideoPlayerController: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+    }
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return self.statusBarStyle
     }
     
     deinit {
@@ -45,7 +55,6 @@ class JWVideoPlayerController: UIViewController {
     
     // MARK: private method
     private func setupNavigation() {
-        
         navigationController?.isNavigationBarHidden = true
         navigationController?.isToolbarHidden = true
     }
@@ -56,6 +65,12 @@ class JWVideoPlayerController: UIViewController {
         view.addSubview(playerView)
         playerView.snp.makeConstraints { (make) in
             make.edges.equalToSuperview()
+        }
+        playerView.singleTapBlock = { [weak self]() in
+            if let isBarHidden = self?.navigationController?.isNavigationBarHidden {
+                self?.navigationController?.setNavigationBarHidden(!isBarHidden, animated: true)
+                self?.statusBarStyle = (!isBarHidden) ? .default : .lightContent
+            }
         }
         let filename = currentAsset.value(forKey: "filename")
         title = filename as? String
