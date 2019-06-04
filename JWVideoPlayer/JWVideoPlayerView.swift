@@ -129,6 +129,7 @@ class JWVideoPlayerView: UIView {
         self.removeGestureRecognizer(pan)
         NotificationCenter.default.removeObserver(self)
         playerItem?.removeObserver(self, forKeyPath: "status")
+        self.resetPlayer()
     }
     
     // MARK: - public method

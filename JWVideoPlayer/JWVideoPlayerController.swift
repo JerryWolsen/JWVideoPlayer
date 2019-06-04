@@ -37,7 +37,9 @@ class JWVideoPlayerController: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        self.playerView.resetPlayer()
+        if self.playerView.isPlaying {
+            self.playerView.resetPlayer()
+        }
     }
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
