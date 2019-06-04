@@ -37,6 +37,7 @@ class JWVideoPlayerController: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        self.playerView.resetPlayer()
     }
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -98,15 +99,18 @@ class JWVideoPlayerController: UIViewController {
     
     private func playNextVideo(mode: PlayMode) {
         let videoCount = asset.count
-        var nextIndex = currentIndex + 1
+        var nextIndex = mode == .singleRepeat ? currentIndex : currentIndex + 1
         if nextIndex == videoCount {
             switch mode {
             case .listRepeat:
                 nextIndex = 0
                 break
             default:
-               JWTools.showAlert(title: "播放到底了", message: "已经是最后一个视频", viewController: self)
-               return
+                JWTools.showAlert(title: "播放到底了", message: "已经是最后一个视频", viewController: self) {
+                    [weak self](alert) in
+                    self?.navigationController?.popToRootViewController(animated: true)
+                }
+                return
             }
         }
         currentIndex = nextIndex

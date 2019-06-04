@@ -35,9 +35,9 @@ class JWTools: NSObject {
         return gradientLayer
     }
     
-    static func showAlert(title: String, message: String, viewController: UIViewController) {
+    static func showAlert(title: String, message: String, viewController: UIViewController, handler: ((UIAlertAction) -> Void)? = nil) {
         let alert = UIAlertController(title: title , message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: handler))
         viewController.present(alert, animated: true, completion: nil)
     }
 }

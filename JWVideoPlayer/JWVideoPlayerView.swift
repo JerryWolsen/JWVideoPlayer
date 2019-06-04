@@ -14,12 +14,12 @@ class JWVideoPlayerView: UIView {
     
     typealias Block = () -> ()
     
-    // MARK: public var
+    // MARK: - public var
     var isPlaying: Bool = false
     var singleTapBlock: Block = {}
     var playEndBlock: (PlayMode) -> () = {(mode) in }
     
-    // MARK: private var
+    // MARK: - private var
     private var link: CADisplayLink!
     private var pan: UIPanGestureRecognizer!
     private var light: CGFloat! {
@@ -67,7 +67,7 @@ class JWVideoPlayerView: UIView {
     }()
     private let preferTimeScale: CMTimeScale = 600
     
-    // MARK: life cycle
+    // MARK: - life cycle
     override init(frame: CGRect) {
         super.init(frame: frame)
         
@@ -131,7 +131,7 @@ class JWVideoPlayerView: UIView {
         playerItem?.removeObserver(self, forKeyPath: "status")
     }
     
-    // MARK: public method
+    // MARK: - public method
     func setupPlayerLayer(playerItem: AVPlayerItem) {
         self.playerItem = playerItem
         let player = AVPlayer(playerItem: playerItem)
@@ -183,7 +183,18 @@ class JWVideoPlayerView: UIView {
         return  TimeInterval(duration.value) / TimeInterval(duration.timescale)
     }
     
-    // MARK: private method
+    func resetPlayer() {
+        self.playerLayer.player?.pause()
+        self.isPlaying = false
+        self.controlView.resetTotalTime()
+        self.playerLayer.removeFromSuperlayer()
+        NotificationCenter.default.removeObserver(self)
+        playerItem?.removeObserver(self, forKeyPath: "status")
+        self.link.remove(from: .main, forMode: .default)
+        self.link.invalidate()
+    }
+    
+    // MARK: - private method
     private func setupGestureHandlers() {
         
         doubleTap = UITapGestureRecognizer.init(target: self, action: #selector(handleDoubleTap))
@@ -284,17 +295,7 @@ class JWVideoPlayerView: UIView {
         }
     }
     
-    private func resetPlayer() {
-        self.isPlaying = false
-        self.controlView.resetTotalTime()
-        self.playerLayer.removeFromSuperlayer()
-        NotificationCenter.default.removeObserver(self)
-        playerItem?.removeObserver(self, forKeyPath: "status")
-        self.link.remove(from: .main, forMode: .default)
-        self.link.invalidate()
-    }
-    
-    // MARK: objc selector method
+    // MARK: - objc selector method
     @objc private func update() {
         let currentTime = self.currentTime()
         let totalTime = self.totalTime()
@@ -306,8 +307,9 @@ class JWVideoPlayerView: UIView {
     
     @objc private func playerDidFinishPlaying(note: NSNotification) {
         NSLog("Jerry: play end")
+        let playMode = self.controlView.getPlayMode()
         self.resetPlayer()
-        self.playEndBlock(self.controlView.getPlayMode())
+        self.playEndBlock(playMode)
     }
     
     @objc private func handleDoubleTap() {
