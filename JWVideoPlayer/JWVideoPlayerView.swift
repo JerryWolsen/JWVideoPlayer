@@ -18,6 +18,8 @@ class JWVideoPlayerView: UIView {
     var isPlaying: Bool = false
     var singleTapBlock: Block = {}
     var playEndBlock: (PlayMode) -> () = {(mode) in }
+    var playNextBlock: Block = {}
+    var playPreviousBlock: Block = {}
     
     // MARK: - private var
     private var link: CADisplayLink!
@@ -46,9 +48,11 @@ class JWVideoPlayerView: UIView {
             make.height.equalTo(100)
         }
         controlView.playBtnBlock = { [weak self]() in
-            let imageName = self?.isPlaying == true ? "Play" : "Pause"
-            self?.controlView.playButton.setImage(UIImage(named: imageName), for: .normal)
-            self?.isPlaying == true ? self?.pause() : self?.play()
+            if let StrongSelf = self {
+                let imageName = StrongSelf.isPlaying == true ? "Play" : "Pause"
+                StrongSelf.controlView.playButton.setImage(UIImage(named: imageName), for: .normal)
+                StrongSelf.isPlaying == true ? StrongSelf.pause() : StrongSelf.play()
+            }
         }
         controlView.layer.zPosition = 100
         controlView.delegate = self
@@ -362,5 +366,15 @@ extension JWVideoPlayerView: JWProgresSliderDelegate {
                 }
             })
         }
+    }
+    
+    func nextVideo(controlView: JWVideoControlView) {
+        self.resetPlayer()
+        self.playNextBlock()
+    }
+    
+    func previousVideo(controlView: JWVideoControlView) {
+        self.resetPlayer()
+        self.playPreviousBlock()
     }
 }

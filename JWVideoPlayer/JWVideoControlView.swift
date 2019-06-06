@@ -10,6 +10,8 @@ import UIKit
 
 protocol JWProgresSliderDelegate: class {
     func player(controlView:JWVideoControlView, sliderTouchUpOut slider:UISlider)
+    func nextVideo(controlView:JWVideoControlView)
+    func previousVideo(controlView:JWVideoControlView)
 }
 
 enum PlayMode: Int {
@@ -25,8 +27,18 @@ class JWVideoControlView: UIView {
     @IBOutlet weak var slider: UISlider!
     @IBOutlet weak var currentTimeLabel: UILabel!
     @IBOutlet weak var totalTimeLabel: UILabel!
+    
     @IBOutlet weak var playButton: UIButton!
     @IBOutlet weak var playModeButton: UIButton!
+    
+    @IBOutlet weak var previousButton: UIButton!
+    @IBOutlet weak var nextButton: UIButton!
+    
+    @IBOutlet weak var normalSpeedButton: UIButton!
+    @IBOutlet weak var threeOfFourSpeedButton: UIButton!
+    @IBOutlet weak var halfSpeedButton: UIButton!
+    @IBOutlet weak var oneAndHalfSpeedButton: UIButton!
+    @IBOutlet weak var twiceSpeedButton: UIButton!
     
     weak var delegate: JWProgresSliderDelegate?
     
@@ -102,12 +114,20 @@ class JWVideoControlView: UIView {
         self.totalTimeLabel.textAlignment = .left
     }
     
-    @IBAction func onPlayBtnClicked(_ sender: UIButton) {
+    @objc private func onSliderTouchDown() {
+        self.isSliding = true
+    }
+    
+    @objc private func onSliderTouchUp() {
+        self.delegate?.player(controlView: self, sliderTouchUpOut: self.slider)
+    }
+    
+    @IBAction private func onPlayBtnClicked(_ sender: UIButton) {
         NSLog("click play btn")
         playBtnBlock()
     }
     
-    @IBAction func onPlayModeButtonClicked(_ sender: UIButton) {
+    @IBAction private func onPlayModeButtonClicked(_ sender: UIButton) {
         NSLog("click play mode \(self.playMode)")
         self.playMode = PlayMode(rawValue: (self.playMode.rawValue + 1) % 4) ?? .sequence
         var playModeButtonImageName = ""
@@ -125,12 +145,26 @@ class JWVideoControlView: UIView {
         self.playModeButton.setImage(UIImage(named: playModeButtonImageName), for: .normal)
     }
     
-    @objc private func onSliderTouchDown() {
-        self.isSliding = true
+    @IBAction func onClickHalfSpeenButton(_ sender: UIButton) {
     }
     
-    @objc private func onSliderTouchUp() {
-        self.delegate?.player(controlView: self, sliderTouchUpOut: self.slider)
+    @IBAction func onClickThreeOfFourSpeedButton(_ sender: UIButton) {
     }
     
+    @IBAction func onClickNormalSpeedButton(_ sender: UIButton) {
+    }
+    
+    @IBAction func onClickOneAndHalfSpeedButton(_ sender: UIButton) {
+    }
+    
+    @IBAction func onClickTwiceSpeedButton(_ sender: UIButton) {
+    }
+    
+    @IBAction func onClickPreviousButton(_ sender: UIButton) {
+        self.delegate?.previousVideo(controlView: self)
+    }
+    
+    @IBAction func onClickNextButton(_ sender: UIButton) {
+        self.delegate?.nextVideo(controlView: self)
+    }
 }

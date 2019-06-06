@@ -78,6 +78,13 @@ class JWVideoPlayerController: UIViewController {
         playerView.playEndBlock = { [weak self](mode) in
             self?.playNextVideo(mode: mode)
         }
+        playerView.playPreviousBlock = {
+            [weak self] in self?.playPreviousVideo()
+        }
+        playerView.playNextBlock = {
+            [weak self] in self?.playNextVideo(mode: .listRepeat)
+        }
+        
         let filename = currentAsset.value(forKey: "filename")
         title = filename as? String
     }
@@ -97,6 +104,13 @@ class JWVideoPlayerController: UIViewController {
                 self.playerView.setupPlayerLayer(playerItem: playerItem!)
             }
         }
+    }
+    
+    private func playPreviousVideo() {
+        let videoCount = asset.count
+        let previousIndex = currentIndex - 1 >= 0 ? currentIndex - 1 : videoCount - 1
+        currentIndex = previousIndex
+        playVideo()
     }
     
     private func playNextVideo(mode: PlayMode) {
