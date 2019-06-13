@@ -24,20 +24,23 @@ class JWVideoPlayerView: UIView {
     // MARK: - private var
     private var link: CADisplayLink!
     private var pan: UIPanGestureRecognizer!
+    private var doubleTap: UITapGestureRecognizer!
+    private var singleTap: UITapGestureRecognizer!
+    
+    private var playerLayer: AVPlayerLayer!
+    private var playerItem: AVPlayerItem?
+    
+    private var voiceView: MPVolumeView!
+    private var volumeSlider: UISlider!
+    private var playButton: UIButton!
+    
     private var light: CGFloat! {
         didSet {
             NSLog("%.2f", light)
             UIScreen.main.brightness = light ?? 0.5
         }
     }
-    private var doubleTap: UITapGestureRecognizer!
-    private var singleTap: UITapGestureRecognizer!
-    private var voiceView: MPVolumeView!
-    private var volumeSlider: UISlider!
-    private var playerLayer: AVPlayerLayer!
-    private var playerItem: AVPlayerItem?
-    private var playButton: UIButton!
-    private var screenWidth = UIScreen.main.bounds.width
+
     private lazy var controlView: JWVideoControlView = {
         let controlView: JWVideoControlView = JWVideoControlView.create()
         self.addSubview(controlView)
@@ -56,6 +59,7 @@ class JWVideoPlayerView: UIView {
         }
         controlView.layer.zPosition = 100
         controlView.delegate = self
+        controlView.isHidden = true
         return controlView
     }()
     private lazy var progressView: JWProgressView = {
@@ -69,6 +73,28 @@ class JWVideoPlayerView: UIView {
         })
         return pv
     }()
+    private lazy var lockButton: UIButton = {
+        let lock = UIButton()
+        self.addSubview(lock)
+        lock.setImage(UIImage(named: "Unlock-Normal"), for: .normal)
+        lock.snp.makeConstraints({ (make) in
+            make.centerY.equalTo(self)
+            make.left.equalTo(self).inset(44)
+            make.width.equalTo(29)
+            make.height.equalTo(27)
+        })
+        lock.addTarget(self, action: #selector(onLockButtonClicked), for: .touchUpInside)
+        lock.isHidden = true
+        return lock
+    }()
+    
+    private var isLocked = false {
+        didSet {
+            self.controlView.isHidden = isLocked
+            self.singleTapBlock()
+        }
+    }
+    private var screenWidth = UIScreen.main.bounds.width
     private let preferTimeScale: CMTimeScale = 600
     
     // MARK: - life cycle
@@ -107,6 +133,12 @@ class JWVideoPlayerView: UIView {
         }
         playerLayer.frame = self.layer.bounds
         screenWidth = self.bounds.width
+        print(safeAreaInsets.left)
+        if #available(iOS 11.0, *) {
+            self.lockButton.snp.updateConstraints({ (make) in
+                make.left.equalTo(self).inset(safeAreaInsets.left + 5)
+            })
+        }
     }
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
@@ -322,16 +354,20 @@ class JWVideoPlayerView: UIView {
     }
     
     @objc private func handleSingleTap() {
-        if self.subviews.contains(self.controlView) {
+        self.lockButton.isHidden = !self.lockButton.isHidden
+        if !self.isLocked {
             self.controlView.isHidden = !self.controlView.isHidden
-        } else {
-            self.controlView.isHidden = false
+            singleTapBlock()
         }
-        
-        singleTapBlock()
+      
     }
     
     @objc private func handlePan(pan: UIPanGestureRecognizer) {
+        
+        guard !self.isLocked else {
+            return
+        }
+        
         let movePoint = pan.translation(in: pan.view)
         let locationPoint = pan.location(in: pan.view)
         let absX = abs(movePoint.x)
@@ -348,9 +384,19 @@ class JWVideoPlayerView: UIView {
         play()
     }
     
+    @objc private func onLockButtonClicked() {
+        self.isLocked = !self.isLocked
+        let imageName = self.isLocked ? "Lock-Normal" : "Unlock-Normal"
+        self.lockButton.setImage(UIImage(named: imageName), for: .normal)
+    }
+    
 }
 
 extension JWVideoPlayerView: JWProgresSliderDelegate {
+    func setPlayRate(rate: Float) {
+        self.playerLayer.player?.rate = rate
+    }
+    
     func player(controlView: JWVideoControlView, sliderTouchUpOut slider: UISlider) {
         if self.status() == AVPlayer.Status.readyToPlay{
             let duration = slider.value * Float(self.totalTime())
