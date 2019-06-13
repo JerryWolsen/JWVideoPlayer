@@ -12,6 +12,7 @@ protocol JWProgresSliderDelegate: class {
     func player(controlView:JWVideoControlView, sliderTouchUpOut slider:UISlider)
     func nextVideo(controlView:JWVideoControlView)
     func previousVideo(controlView:JWVideoControlView)
+    func setPlayRate(rate: Float)
 }
 
 enum PlayMode: Int {
@@ -46,6 +47,7 @@ class JWVideoControlView: UIView {
     var isSliding = false
     
     private var playMode = PlayMode.sequence
+    private var speedButtons:Array<UIButton> = []
     
     static func create() -> JWVideoControlView {
         let view = Bundle.main.loadNibNamed("JWVideoControlView", owner: nil, options: nil)![0] as! JWVideoControlView
@@ -87,6 +89,7 @@ class JWVideoControlView: UIView {
        setupSlider()
        setupCurrentLabel()
        setupTotalTimeLabel()
+       setupSpeedButtons()
     }
     
     private func setupSlider() {
@@ -112,6 +115,20 @@ class JWVideoControlView: UIView {
     private func setupTotalTimeLabel() {
         self.totalTimeLabel.text = "00:00"
         self.totalTimeLabel.textAlignment = .left
+    }
+    
+    private func setupSpeedButtons() {
+        self.speedButtons = [halfSpeedButton!, threeOfFourSpeedButton!, normalSpeedButton!, oneAndHalfSpeedButton!, twiceSpeedButton!]
+    }
+    
+    private func setCurrentSpeedButton(sender: UIButton) {
+        for button in self.speedButtons {
+            if button == sender {
+                button.setTitleColor(UIColor(red: 126/255, green: 222/255, blue: 185/255, alpha: 1.0), for: .normal)
+            } else {
+                 button.setTitleColor(.white, for: .normal) 
+            }
+        }
     }
     
     @objc private func onSliderTouchDown() {
@@ -146,18 +163,28 @@ class JWVideoControlView: UIView {
     }
     
     @IBAction func onClickHalfSpeenButton(_ sender: UIButton) {
+        self.setCurrentSpeedButton(sender: sender)
+        self.delegate?.setPlayRate(rate: 0.5)
     }
     
     @IBAction func onClickThreeOfFourSpeedButton(_ sender: UIButton) {
+        self.setCurrentSpeedButton(sender: sender)
+        self.delegate?.setPlayRate(rate: 0.75)
     }
     
     @IBAction func onClickNormalSpeedButton(_ sender: UIButton) {
+        self.setCurrentSpeedButton(sender: sender)
+        self.delegate?.setPlayRate(rate: 1.0)
     }
     
     @IBAction func onClickOneAndHalfSpeedButton(_ sender: UIButton) {
+        self.setCurrentSpeedButton(sender: sender)
+        self.delegate?.setPlayRate(rate: 1.5)
     }
     
     @IBAction func onClickTwiceSpeedButton(_ sender: UIButton) {
+        self.setCurrentSpeedButton(sender: sender)
+        self.delegate?.setPlayRate(rate: 2.0)
     }
     
     @IBAction func onClickPreviousButton(_ sender: UIButton) {
