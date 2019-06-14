@@ -87,10 +87,25 @@ class JWVideoPlayerView: UIView {
         lock.isHidden = true
         return lock
     }()
+    private lazy var cameraButton: UIButton = {
+        let camera = UIButton()
+        self.addSubview(camera)
+        camera.setImage(UIImage(named: "white_camera"), for: .normal)
+        camera.snp.makeConstraints({ (make) in
+            make.centerY.equalTo(self)
+            make.right.equalTo(self).inset(44)
+            make.width.equalTo(43)
+            make.height.equalTo(43)
+        })
+        camera.addTarget(self, action: #selector(onCameraButtonClicked), for: .touchUpInside)
+        camera.isHidden = true
+        return camera
+    }()
     
     private var isLocked = false {
         didSet {
             self.controlView.isHidden = isLocked
+            self.cameraButton.isHidden = isLocked
             self.singleTapBlock()
         }
     }
@@ -138,6 +153,9 @@ class JWVideoPlayerView: UIView {
             self.lockButton.snp.updateConstraints({ (make) in
                 make.left.equalTo(self).inset(safeAreaInsets.left + 5)
             })
+            self.cameraButton.snp.updateConstraints { (make) in
+                make.right.equalTo(self).inset(safeAreaInsets.right + 5)
+            }
         }
     }
     
@@ -191,6 +209,7 @@ class JWVideoPlayerView: UIView {
         hidePlayButton()
         playerLayer.player!.play()
         isPlaying = true
+        self.controlView.playButton.setImage(UIImage(named: "Pause"), for: .normal)
     }
     
     func pause() {
@@ -332,6 +351,13 @@ class JWVideoPlayerView: UIView {
         }
     }
     
+    private func getCurrentVideoImage() -> UIImage{
+        let generator = AVAssetImageGenerator(asset: self.playerItem!.asset)
+        var time = playerLayer.player?.currentTime()
+        let imageRef:CGImage = try! generator.copyCGImage(at: time!, actualTime: &time!)
+        return UIImage(cgImage: imageRef)
+    }
+    
     // MARK: - objc selector method
     @objc private func update() {
         let currentTime = self.currentTime()
@@ -356,10 +382,10 @@ class JWVideoPlayerView: UIView {
     @objc private func handleSingleTap() {
         self.lockButton.isHidden = !self.lockButton.isHidden
         if !self.isLocked {
+            self.cameraButton.isHidden = !self.cameraButton.isHidden
             self.controlView.isHidden = !self.controlView.isHidden
             singleTapBlock()
         }
-      
     }
     
     @objc private func handlePan(pan: UIPanGestureRecognizer) {
@@ -388,6 +414,20 @@ class JWVideoPlayerView: UIView {
         self.isLocked = !self.isLocked
         let imageName = self.isLocked ? "Lock-Normal" : "Unlock-Normal"
         self.lockButton.setImage(UIImage(named: imageName), for: .normal)
+    }
+    
+    @objc private func onCameraButtonClicked() {
+        let image = self.getCurrentVideoImage()
+         UIImageWriteToSavedPhotosAlbum(image, self, #selector(saveCompleted(image:withError:contextInfo:)), nil)
+    }
+    
+    @objc private func saveCompleted(image:UIImage, withError error:NSError?, contextInfo:UnsafeRawPointer){
+        if let e = error as NSError? {
+            print("Jerry save error: \(e)" )
+        } else {
+            print("Jerry: image saved successfully")
+            JWTools.showAlert(title: "保存成功", message: "截图已保存至相册", viewController: self.parentVC()!, handler: nil)
+        }
     }
     
 }

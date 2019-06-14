@@ -40,6 +40,16 @@ class JWTools: NSObject {
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: handler))
         viewController.present(alert, animated: true, completion: nil)
     }
+    
+    static func shotImage(withView view: UIView) -> UIImage {
+        UIGraphicsBeginImageContextWithOptions(view.frame.size, true, UIScreen.main.scale)
+        view.layer.render(in: UIGraphicsGetCurrentContext()!)
+        let image:UIImage = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        return image
+    }
+    
 }
+
 
 
