@@ -126,19 +126,41 @@ class JWVideoPlayerView: UIView {
         
         light = UIScreen.main.brightness
 
-        voiceView = MPVolumeView(frame: self.bounds)
+        voiceView = MPVolumeView(frame: CGRect(x: 0, y: 0, width: 220, height: 30))
         for subview in voiceView.subviews {
             if let slider = subview as? UISlider {
                 volumeSlider = slider
                 break
             }
         }
-        voiceView.isHidden = true
+        voiceView.showsRouteButton = true
+        voiceView.showsVolumeSlider = false
+        voiceView.alpha = 1
+        voiceView.sizeToFit()
+        voiceView.autoresizingMask = .flexibleWidth
+
         self.addSubview(voiceView)
-       
+        voiceView.snp.makeConstraints { (make) in
+            make.top.equalTo(self).inset(104)
+            make.centerX.equalTo(self)
+            make.width.equalTo(200)
+            make.height.equalTo(50)
+        }
+        fixAirPlayButton()
+      
         self.setupGestureHandlers()
         
         self.initControlView()
+    }
+    
+    func fixAirPlayButton() {
+        guard let routeButton = voiceView.subviews.filter({$0 is UIButton}).first else { return }
+        routeButton.addObserver(self, forKeyPath: "alpha", options: .new, context: nil)
+    }
+    
+    func removeAirPlayButtonFix() {
+        guard let routeButton = voiceView.subviews.filter({$0 is UIButton}).first else { return }
+        routeButton.removeObserver(self, forKeyPath: "alpha")
     }
     
     override func layoutSubviews() {
@@ -171,6 +193,12 @@ class JWVideoPlayerView: UIView {
                 NSLog("AVPlayerStatusUnknown")
             }
         }
+        
+        if keyPath == "alpha" && change != nil {
+            guard let btnObject = object as? UIButton, let change = change else { return }
+            guard let newChange = change[NSKeyValueChangeKey.newKey] as? Int, newChange != 1 else { return }
+            btnObject.alpha = 1.0
+        }
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -183,6 +211,7 @@ class JWVideoPlayerView: UIView {
         self.removeGestureRecognizer(pan)
         NotificationCenter.default.removeObserver(self)
         playerItem?.removeObserver(self, forKeyPath: "status")
+        removeAirPlayButtonFix()
         self.resetPlayer()
     }
     
@@ -191,6 +220,10 @@ class JWVideoPlayerView: UIView {
         self.playerItem = playerItem
         let player = AVPlayer(playerItem: playerItem)
         player.volume = 1
+        
+        player.allowsExternalPlayback = true
+        player.usesExternalPlaybackWhileExternalScreenIsActive = true
+        
         playerLayer = AVPlayerLayer(player: player)
         playerLayer.videoGravity = .resizeAspect
         playerLayer.frame = self.layer.bounds
