@@ -12,8 +12,8 @@ import Photos
 
 class JWVideoListViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
 
-    var allVideos: PHFetchResult<PHAssetCollection>!
-    var asset: PHFetchResult<PHAsset>!
+    var allVideos: PHFetchResult<PHAssetCollection>?
+    var asset: PHFetchResult<PHAsset>?
     var availableWidth: CGFloat = 0
     
     var collectionViewFlowLayout: UICollectionViewFlowLayout!
@@ -26,10 +26,15 @@ class JWVideoListViewController: UIViewController, UICollectionViewDataSource, U
         super.viewDidLoad()
         title = "本地视频列表"
         view.backgroundColor = UIColor.white
-        allVideos = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumVideos, options: nil)
         
-        asset = PHAsset.fetchAssets(in: allVideos.object(at: 0), options: nil)
-        PHPhotoLibrary.shared().register(self)
+        // 申请权限
+        PHPhotoLibrary.requestAuthorization { (status) in
+            if status == .authorized {
+                DispatchQueue.main.async {
+                    self.setUp()
+                }
+            }
+        }
         
         let width = view.bounds.inset(by: view.safeAreaInsets).width
         let height = view.bounds.inset(by: view.safeAreaInsets).height
@@ -52,6 +57,16 @@ class JWVideoListViewController: UIViewController, UICollectionViewDataSource, U
             make.top.equalToSuperview()
             make.bottom.equalToSuperview()
         }
+        PHPhotoLibrary.shared().register(self)
+       
+    }
+    
+    func setUp() {
+        allVideos = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumVideos, options: nil)
+        if let videos = allVideos {
+            asset = PHAsset.fetchAssets(in: videos.object(at: 0), options: nil)
+        }
+        collectionView.reloadData()
     }
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -87,10 +102,17 @@ class JWVideoListViewController: UIViewController, UICollectionViewDataSource, U
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        guard let asset = asset else {
+            return 0
+        }
         return asset.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        
+        guard let asset = asset else {
+            return UICollectionViewCell()
+        }
         
         let assetItem = asset.object(at: indexPath.item)
        
@@ -108,6 +130,7 @@ class JWVideoListViewController: UIViewController, UICollectionViewDataSource, U
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let asset = asset else { return }
         let vc: JWVideoPlayerController = JWVideoPlayerController()
         vc.setupParameters(result: asset, index: indexPath.item)
         navigationController?.pushViewController(vc, animated: true)

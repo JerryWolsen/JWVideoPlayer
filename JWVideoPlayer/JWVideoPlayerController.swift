@@ -100,7 +100,7 @@ class JWVideoPlayerController: UIViewController {
         options.deliveryMode = .automatic
         
         PHImageManager.default().requestPlayerItem(forVideo: currentAsset, options: options) { playerItem, info  in
-            DispatchQueue.main.sync {
+            DispatchQueue.main.async {
                 self.playerView.setupPlayerLayer(playerItem: playerItem!)
             }
         }

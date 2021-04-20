@@ -60,12 +60,12 @@ class JWProgressView: UIView {
     }()
     
     private lazy var forwardImg: UIImage = {
-        return UIImage(named: "player_fast_forward") ?? nil!
+        return UIImage(named: "player_fast_forward") ?? UIImage()
     }()
     
     private lazy var backImg: UIImage = {
-        return UIImage(named: "player_fast_back")
-    }() ?? nil!
+        return UIImage(named: "player_fast_back") ?? UIImage()
+    }()
     
     var totalTime: String! {
         didSet {
